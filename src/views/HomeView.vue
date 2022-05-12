@@ -14,17 +14,17 @@
           >
             <va-input
               class="mb-4"
-              label="Введите ответ"
+              label="№1"
               v-model="inputValue"
             />
             <va-input
               class="mb-4"
-              label="Введите ответ"
+              label="№2"
               v-model="inputValue2"
             />
             <va-input
               class="mb-4"
-              label="Введите ответ"
+              label="№3"
               v-model="inputValue3"
             />
           </va-form>
