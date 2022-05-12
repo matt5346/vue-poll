@@ -89,8 +89,8 @@
 <script setup>
 import { onMounted, computed, ref as vueRef, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { getFirestore, deleteDoc, doc } from "firebase/firestore";
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getFirestore } from "firebase/firestore";
+import { getDatabase, ref, onValue, set } from "firebase/database";
 
 import {
   getAuth,
@@ -185,12 +185,24 @@ const logout = async () => {
 };
 
 const deleteAll = async () => {
-  const deletedDocs = await deleteDoc(doc(db.value, "LWM13TRzA6vGOnJXYBAr", "DC"));
-  console.log(deletedDocs, "deletedDocs");
-  // firebase1.firestore().collection(path).listDocuments().then(val => {
-  //   val.map((val) => {
-  //     val.delete();
-  //   });
+  // const deletedDocs = await deleteDoc(doc(db.value, "LWM13TRzA6vGOnJXYBAr", "DC"));
+  // console.log(deletedDocs, "deletedDocs");
+  // const refData = db.value.ref("server/saving-data/fireblog");
+
+  const getDb = getDatabase();
+  console.log(allAnswers, "allAnswers");
+  if (allAnswers.value) {
+    Object.entries(allAnswers.value).forEach((item) => {
+      console.log(item, "item");
+      set(ref(getDb, "questions/" + item[0]), null);
+    });
+  }
+  // set(ref(realTimeDB, "questions/", null), (error) => {
+  //   if (error) {
+  //     console.log("Data could not be removed." + error);
+  //   } else {
+  //     console.log("Data removed successfully.");
+  //   }
   // });
 };
 

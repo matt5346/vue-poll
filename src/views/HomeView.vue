@@ -111,7 +111,6 @@ const isAlreadyAnswered = vueRef(false);
 onMounted(async () => {
   realTimeDB = getDatabase(firebaseConfig);
   const params = new URLSearchParams(window.location.search);
-  console.log(params.get("title"), "PARAMS");
   urlQuestion.value = params.get("title");
 
   await loadAllAnswers();
@@ -122,9 +121,7 @@ const getArrayOfAnswers = computed({
   get () {
     let arrayOfAnswers = [];
 
-    console.log(allAnswers.value, "allAnswers.value");
     Object.entries(allAnswers.value).forEach((item) => {
-      console.log(item, "ITEMS");
       const obj = {
         counter: -1,
         question: item[1],
