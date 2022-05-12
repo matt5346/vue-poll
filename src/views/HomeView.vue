@@ -4,28 +4,6 @@
       class="flex xs12 sm12 md12 xl6"
       v-if="!isAlreadyAnswered"
     >
-      <va-card>
-        <va-card-title><h1 class="display-5">Все ответы:</h1></va-card-title>
-
-        <va-card-actions align="stretch" vertical>
-          <div
-            class="md12 xl12"
-            v-if="getArrayOfAnswers"
-          >
-            <div
-              v-for="item in getArrayOfAnswers"
-              :class="['chip', {
-                'biggest': item.order === 0,
-                'medium': item.order !== 0 || item.order !== getArrayOfAnswers.length - 1,
-                'smallest': item.order === getArrayOfAnswers.length - 1,
-              }]"
-              :key="item"
-            >
-              {{item.question}} <span>+{{item.counter}}</span>
-            </div>
-          </div>
-        </va-card-actions>
-      </va-card>
       <va-card v-if="urlQuestion">
         <va-card-title><h1 class="display-5">{{urlQuestion}}</h1></va-card-title>
 
