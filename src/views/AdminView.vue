@@ -59,13 +59,37 @@
       >
         Logout
       </va-button>
+
+      <va-card class="mt-5">
+        <va-card-title><h1 class="display-5">Все ответы:</h1></va-card-title>
+
+        <va-card-actions align="stretch" vertical>
+          <div
+            class="md12 xl12"
+            v-if="getArrayOfAnswers"
+          >
+            <div
+              v-for="item in getArrayOfAnswers"
+              :class="['chip', {
+                'biggest': item.order === 0,
+                'medium': item.order !== 0 || item.order !== getArrayOfAnswers.length - 1,
+                'smallest': item.order === getArrayOfAnswers.length - 1,
+              }]"
+              :key="item"
+            >
+              {{item.question}} <span>+{{item.counter}}</span>
+            </div>
+          </div>
+        </va-card-actions>
+      </va-card>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 
 import {
   getAuth,
@@ -74,7 +98,6 @@ import {
   signOut
 } from "firebase/auth";
 import app from "@/firebase";
-import { getFirestore, deleteDoc, doc } from "firebase/firestore";
 
 const email = ref("");
 const password = ref("");
@@ -82,15 +105,64 @@ const validation = ref(null);
 const router = useRouter();
 const currentUserLogged = ref(null);
 const db = ref(null);
+const allAnswers = ref([]);
 
 const inputRules = [value => value === "admin@gmail.com"];
 const passRules = [value => value === "admin12"];
 
-onMounted(() => {
+onMounted(async () => {
   onAuthStateChanged(getAuth(app), (user) => {
     currentUserLogged.value = !!user;
   });
   db.value = getFirestore(app);
+
+  const querySnapshot = await getDocs(collection(db.value, "test"));
+
+  querySnapshot.forEach((doc) => {
+    const answer = JSON.stringify(doc.data());
+    allAnswers.value.push(JSON.parse(answer));
+  });
+});
+
+const getArrayOfAnswers = computed({
+  get () {
+    let arrayOfAnswers = [];
+
+    allAnswers.value.forEach((item) => {
+      const obj = {
+        counter: -1,
+        question: item.question,
+        order: 0
+      };
+
+      allAnswers.value.forEach((innerItem) => {
+        if (item.question === innerItem.question) {
+          obj.counter++;
+        }
+      });
+
+      if (arrayOfAnswers && arrayOfAnswers.length) {
+        const answerPushed = arrayOfAnswers.find((item) => item.question === obj.question);
+        if (answerPushed) return;
+      }
+
+      arrayOfAnswers.push(obj);
+    });
+
+    if (arrayOfAnswers && arrayOfAnswers.length) {
+      arrayOfAnswers = arrayOfAnswers.sort(function (a, b) {
+        return b.counter - a.counter;
+      });
+
+      arrayOfAnswers = arrayOfAnswers.map((item, index) => {
+        console.log(index, "arrayOfAnswers");
+        return { ...item, order: index };
+      });
+    }
+    console.log(arrayOfAnswers, "arrayOfAnswers");
+
+    return arrayOfAnswers;
+  }
 });
 
 const logout = async () => {
@@ -105,15 +177,15 @@ const logout = async () => {
   }
 };
 
-const deleteAll = async () => {
-  const deletedDocs = await deleteDoc(doc(db.value, "test", "DC"));
-  console.log(deletedDocs, "deletedDocs");
-  // firebase1.firestore().collection(path).listDocuments().then(val => {
-  //   val.map((val) => {
-  //     val.delete();
-  //   });
-  // });
-};
+// const deleteAll = async () => {
+//   const deletedDocs = await deleteDoc(doc(db.value, "test", "DC"));
+//   console.log(deletedDocs, "deletedDocs");
+//   // firebase1.firestore().collection(path).listDocuments().then(val => {
+//   //   val.map((val) => {
+//   //     val.delete();
+//   //   });
+//   // });
+// };
 
 const loginSubmit = async () => {
   try {

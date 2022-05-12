@@ -26,29 +26,13 @@
           >
             Подтвердить
           </va-button>
-
-          <div class="md12">
-            <div
-              v-for="item in getArrayOfAnswers"
-              :class="['chip', {
-                'biggest': item.order === 0,
-                'medium': item.order !== 0 || item.order !== getArrayOfAnswers.length - 1,
-                'smallest': item.order === getArrayOfAnswers.length - 1,
-              }]"
-              :key="item"
-              :style="`padding: ${10 + item.padding}px`"
-            >
-              {{item.question}} <span>+{{item.counter}}</span>
-            </div>
-          </div>
         </va-card-actions>
       </va-card>
       <div
         v-else
-        class="flex sm md12 xl6"
       >
         <va-card>
-          <va-card-title><h1 class="display-5">Вопрос отсутствует</h1></va-card-title>
+          <va-card-title><h1 class="display-5 card-title">Вопрос отсутствует</h1></va-card-title>
         </va-card>
       </div>
     </div>
@@ -204,5 +188,12 @@ const submitForm = async () => {
     border-radius: 20px;
     background: #6cc26c;
   }
+}
+
+.card-title {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  text-align: center;
 }
 </style>
