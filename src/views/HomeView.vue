@@ -39,6 +39,16 @@
               label="Введите ответ"
               v-model="inputValue"
             />
+            <va-input
+              class="mb-4"
+              label="Введите ответ"
+              v-model="inputValue2"
+            />
+            <va-input
+              class="mb-4"
+              label="Введите ответ"
+              v-model="inputValue3"
+            />
           </va-form>
 
           <va-button
@@ -87,19 +97,19 @@
 
 <script setup>
 import { reactive, onMounted, computed, ref as vueRef } from "vue";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
 import { getDatabase, ref, set, onValue } from "firebase/database";
 import firebaseConfig from "@/firebase";
 
 const inputValue = vueRef("");
+const inputValue2 = vueRef("");
+const inputValue3 = vueRef("");
 const urlQuestion = vueRef(null);
 const allAnswers = vueRef([]);
-let db = reactive(null);
 let realTimeDB = reactive(null);
 const isAlreadyAnswered = vueRef(false);
 
 onMounted(async () => {
-  db = getFirestore(firebaseConfig);
+  realTimeDB = getDatabase(firebaseConfig);
   const params = new URLSearchParams(window.location.search);
   console.log(params.get("title"), "PARAMS");
   urlQuestion.value = params.get("title");
@@ -152,8 +162,6 @@ const getArrayOfAnswers = computed({
 });
 
 const loadAllAnswers = async () => {
-  realTimeDB = getDatabase(firebaseConfig);
-
   const questData = ref(realTimeDB, "/questions");
   onValue(questData, (snapshot) => {
     const data = snapshot.val();
@@ -164,14 +172,12 @@ const loadAllAnswers = async () => {
 const submitForm = async () => {
   try {
     const getDb = getDatabase();
-    const docRef = await addDoc(collection(db, "test"), {
-      question: inputValue.value
-    });
     set(ref(getDb, "questions/" + Date.now()), inputValue.value);
+    set(ref(getDb, "questions/" + (Date.now() + 1)), inputValue2.value);
+    set(ref(getDb, "questions/" + (Date.now() + 2)), inputValue3.value);
     sessionStorage.setItem("isVoted", true);
     isAlreadyAnswered.value = true;
     await loadAllAnswers();
-    console.log("Document written with ID: ", docRef.id);
   } catch (e) {
     console.error("Error adding document: ", e);
   }
