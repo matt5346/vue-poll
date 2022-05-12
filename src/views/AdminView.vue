@@ -89,7 +89,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { getFirestore, collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 import {
   getAuth,
@@ -177,15 +177,15 @@ const logout = async () => {
   }
 };
 
-// const deleteAll = async () => {
-//   const deletedDocs = await deleteDoc(doc(db.value, "test", "DC"));
-//   console.log(deletedDocs, "deletedDocs");
-//   // firebase1.firestore().collection(path).listDocuments().then(val => {
-//   //   val.map((val) => {
-//   //     val.delete();
-//   //   });
-//   // });
-// };
+const deleteAll = async () => {
+  const deletedDocs = await deleteDoc(doc(db.value, "LWM13TRzA6vGOnJXYBAr", "DC"));
+  console.log(deletedDocs, "deletedDocs");
+  // firebase1.firestore().collection(path).listDocuments().then(val => {
+  //   val.map((val) => {
+  //     val.delete();
+  //   });
+  // });
+};
 
 const loginSubmit = async () => {
   try {

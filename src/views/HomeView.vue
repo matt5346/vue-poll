@@ -80,14 +80,9 @@ onMounted(async () => {
 
   const params = new URLSearchParams(window.location.search);
   urlQuestion.value = params.get("title");
-  const querySnapshot = await getDocs(collection(db.value, "test"));
 
-  querySnapshot.forEach((doc) => {
-    const answer = JSON.stringify(doc.data());
-    allAnswers.value.push(JSON.parse(answer));
-  });
-
-  isAlreadyAnswered.value = sessionStorage.getItem("isVoted", true);
+  await loadAllAnswers();
+  isAlreadyAnswered.value = sessionStorage.getItem("isVoted");
 });
 
 const getArrayOfAnswers = computed({
@@ -131,6 +126,15 @@ const getArrayOfAnswers = computed({
   }
 });
 
+const loadAllAnswers = async () => {
+  const querySnapshot = await getDocs(collection(db.value, "test"));
+
+  querySnapshot.forEach((doc) => {
+    const answer = JSON.stringify(doc.data());
+    allAnswers.value.push(JSON.parse(answer));
+  });
+};
+
 const submitForm = async () => {
   try {
     const docRef = await addDoc(collection(db.value, "test"), {
@@ -138,6 +142,7 @@ const submitForm = async () => {
     });
     sessionStorage.setItem("isVoted", true);
     isAlreadyAnswered.value = true;
+    await loadAllAnswers();
     console.log("Document written with ID: ", docRef.id);
   } catch (e) {
     console.error("Error adding document: ", e);
