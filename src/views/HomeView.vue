@@ -69,13 +69,12 @@
       </div>
     </div>
     <div v-else-if="isAlreadyAnswered">
-      <va-card>
+      <va-card v-if="getArrayOfAnswers && getArrayOfAnswers.length">
         <va-card-title><h1 class="display-5">Все ответы:</h1></va-card-title>
 
         <va-card-actions align="stretch" vertical>
           <div
             class="md12 xl12"
-            v-if="getArrayOfAnswers"
           >
             <div
               v-for="item in getArrayOfAnswers"
@@ -90,6 +89,9 @@
             </div>
           </div>
         </va-card-actions>
+      </va-card>
+      <va-card v-else>
+        <va-card-title><h1 class="display-5 card-title">Ответы отсутствуют</h1></va-card-title>
       </va-card>
     </div>
   </div>
@@ -121,37 +123,40 @@ const getArrayOfAnswers = computed({
   get () {
     let arrayOfAnswers = [];
 
-    Object.entries(allAnswers.value).forEach((item) => {
-      const obj = {
-        counter: -1,
-        question: item[1],
-        order: 0
-      };
+    if (allAnswers.value) {
+      Object.entries(allAnswers.value).forEach((item) => {
+        const obj = {
+          counter: -1,
+          question: item[1],
+          order: 0
+        };
 
-      Object.entries(allAnswers.value).forEach((innerItem) => {
-        if (item[1] === innerItem[1]) {
-          obj.counter++;
+        Object.entries(allAnswers.value).forEach((innerItem) => {
+          if (item[1] === innerItem[1]) {
+            obj.counter++;
+          }
+        });
+
+        if (arrayOfAnswers && arrayOfAnswers.length) {
+          const answerPushed = arrayOfAnswers.find((item) => item.question === obj.question);
+          if (answerPushed) return;
         }
+
+        arrayOfAnswers.push(obj);
       });
 
       if (arrayOfAnswers && arrayOfAnswers.length) {
-        const answerPushed = arrayOfAnswers.find((item) => item.question === obj.question);
-        if (answerPushed) return;
+        arrayOfAnswers = arrayOfAnswers.sort(function (a, b) {
+          return b.counter - a.counter;
+        });
+
+        arrayOfAnswers = arrayOfAnswers.map((item, index) => {
+          console.log(index, "arrayOfAnswers");
+          return { ...item, order: index };
+        });
       }
-
-      arrayOfAnswers.push(obj);
-    });
-
-    if (arrayOfAnswers && arrayOfAnswers.length) {
-      arrayOfAnswers = arrayOfAnswers.sort(function (a, b) {
-        return b.counter - a.counter;
-      });
-
-      arrayOfAnswers = arrayOfAnswers.map((item, index) => {
-        console.log(index, "arrayOfAnswers");
-        return { ...item, order: index };
-      });
     }
+
     console.log(arrayOfAnswers, "arrayOfAnswers");
 
     return arrayOfAnswers;
