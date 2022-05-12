@@ -87,9 +87,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { onMounted, computed, ref as vueRef, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { getFirestore, collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { getFirestore, deleteDoc, doc } from "firebase/firestore";
+import { getDatabase, ref, onValue } from "firebase/database";
 
 import {
   getAuth,
@@ -99,13 +100,14 @@ import {
 } from "firebase/auth";
 import app from "@/firebase";
 
-const email = ref("");
-const password = ref("");
-const validation = ref(null);
+const email = vueRef("");
+const password = vueRef("");
+const validation = vueRef(null);
 const router = useRouter();
-const currentUserLogged = ref(null);
-const db = ref(null);
-const allAnswers = ref([]);
+const currentUserLogged = vueRef(null);
+const db = vueRef(null);
+const allAnswers = vueRef([]);
+let realTimeDB = reactive(null);
 
 const inputRules = [value => value === "admin@gmail.com"];
 const passRules = [value => value === "admin12"];
@@ -116,27 +118,32 @@ onMounted(async () => {
   });
   db.value = getFirestore(app);
 
-  const querySnapshot = await getDocs(collection(db.value, "test"));
-
-  querySnapshot.forEach((doc) => {
-    const answer = JSON.stringify(doc.data());
-    allAnswers.value.push(JSON.parse(answer));
-  });
+  loadAllAnswers();
 });
 
+const loadAllAnswers = async () => {
+  realTimeDB = getDatabase(app);
+
+  const questData = ref(realTimeDB, "/questions");
+  onValue(questData, (snapshot) => {
+    const data = snapshot.val();
+    allAnswers.value = data;
+  });
+};
 const getArrayOfAnswers = computed({
   get () {
     let arrayOfAnswers = [];
 
-    allAnswers.value.forEach((item) => {
+    Object.entries(allAnswers.value).forEach((item) => {
+      console.log(item, "ITEMS");
       const obj = {
         counter: -1,
-        question: item.question,
+        question: item[1],
         order: 0
       };
 
-      allAnswers.value.forEach((innerItem) => {
-        if (item.question === innerItem.question) {
+      Object.entries(allAnswers.value).forEach((innerItem) => {
+        if (item[1] === innerItem[1]) {
           obj.counter++;
         }
       });

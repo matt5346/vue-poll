@@ -4,6 +4,28 @@
       class="flex xs12 sm12 md12 xl6"
       v-if="!isAlreadyAnswered"
     >
+      <va-card>
+        <va-card-title><h1 class="display-5">Все ответы:</h1></va-card-title>
+
+        <va-card-actions align="stretch" vertical>
+          <div
+            class="md12 xl12"
+            v-if="getArrayOfAnswers"
+          >
+            <div
+              v-for="item in getArrayOfAnswers"
+              :class="['chip', {
+                'biggest': item.order === 0,
+                'medium': item.order !== 0 || item.order !== getArrayOfAnswers.length - 1,
+                'smallest': item.order === getArrayOfAnswers.length - 1,
+              }]"
+              :key="item"
+            >
+              {{item.question}} <span>+{{item.counter}}</span>
+            </div>
+          </div>
+        </va-card-actions>
+      </va-card>
       <va-card v-if="urlQuestion">
         <va-card-title><h1 class="display-5">{{urlQuestion}}</h1></va-card-title>
 
@@ -64,21 +86,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+import { reactive, onMounted, computed, ref as vueRef } from "vue";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getDatabase, ref, set, onValue } from "firebase/database";
 import firebaseConfig from "@/firebase";
 
-const inputValue = ref("");
-const validation = ref(null);
-const urlQuestion = ref("");
-const db = ref(null);
-const allAnswers = ref([]);
-const isAlreadyAnswered = ref(false);
+const inputValue = vueRef("");
+const urlQuestion = vueRef(null);
+const allAnswers = vueRef([]);
+let db = reactive(null);
+let realTimeDB = reactive(null);
+const isAlreadyAnswered = vueRef(false);
 
 onMounted(async () => {
-  db.value = getFirestore(firebaseConfig);
-
+  db = getFirestore(firebaseConfig);
   const params = new URLSearchParams(window.location.search);
+  console.log(params.get("title"), "PARAMS");
   urlQuestion.value = params.get("title");
 
   await loadAllAnswers();
@@ -89,15 +112,17 @@ const getArrayOfAnswers = computed({
   get () {
     let arrayOfAnswers = [];
 
-    allAnswers.value.forEach((item) => {
+    console.log(allAnswers.value, "allAnswers.value");
+    Object.entries(allAnswers.value).forEach((item) => {
+      console.log(item, "ITEMS");
       const obj = {
         counter: -1,
-        question: item.question,
+        question: item[1],
         order: 0
       };
 
-      allAnswers.value.forEach((innerItem) => {
-        if (item.question === innerItem.question) {
+      Object.entries(allAnswers.value).forEach((innerItem) => {
+        if (item[1] === innerItem[1]) {
           obj.counter++;
         }
       });
@@ -127,19 +152,22 @@ const getArrayOfAnswers = computed({
 });
 
 const loadAllAnswers = async () => {
-  const querySnapshot = await getDocs(collection(db.value, "test"));
+  realTimeDB = getDatabase(firebaseConfig);
 
-  querySnapshot.forEach((doc) => {
-    const answer = JSON.stringify(doc.data());
-    allAnswers.value.push(JSON.parse(answer));
+  const questData = ref(realTimeDB, "/questions");
+  onValue(questData, (snapshot) => {
+    const data = snapshot.val();
+    allAnswers.value = data;
   });
 };
 
 const submitForm = async () => {
   try {
-    const docRef = await addDoc(collection(db.value, "test"), {
+    const getDb = getDatabase();
+    const docRef = await addDoc(collection(db, "test"), {
       question: inputValue.value
     });
+    set(ref(getDb, "questions/" + Date.now()), inputValue.value);
     sessionStorage.setItem("isVoted", true);
     isAlreadyAnswered.value = true;
     await loadAllAnswers();
