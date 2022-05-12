@@ -174,6 +174,7 @@ const submitForm = async () => {
   color: #fff;
   margin: 0 5px;
   font-size: 16px;
+  margin-bottom: 10px;
 
   &.biggest {
     background: rgb(44, 130, 224);
